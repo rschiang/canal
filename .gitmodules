@@ -1,3 +1,6 @@
 [submodule "plurq"]
 	path = plurq
 	url = https://github.com/rschiang/plurq.git
+[submodule "vendor/qtkeychain"]
+	path = vendor/qtkeychain
+	url = https://github.com/frankosterfeld/qtkeychain.git
