@@ -2,7 +2,12 @@ import qbs
 
 QtGuiApplication {
     name: "Canal"
-    Depends { name: "Qt.quick" }
+
+    Depends { name: "Plurq" }
+    Depends {
+        name: "Qt"
+        submodules: ["quick", "network", "networkauth"]
+    }
 
     files: [
         "qml/main.qrc",
