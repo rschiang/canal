@@ -11,6 +11,7 @@ QtGuiApplication {
 
     files: [
         "qml/main.qrc",
+        "res/resources.qrc",
     ]
 
     Group {

@@ -20,7 +20,16 @@ void Application::initializeComponents()
     this->menu = new QMenuBar();
 
     // Create the tray icon
+    QIcon icon(":/res/mac/tray_icon.png");
+    icon.setIsMask(true);
+
     this->trayIcon = new QSystemTrayIcon();
+    trayIcon->setIcon(icon);
     trayIcon->setToolTip(tr("Canal"));
     trayIcon->show();
+    connect(trayIcon, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason) {
+        qDebug() << reason;
+        if (reason == QSystemTrayIcon::DoubleClick)
+            this->quit();
+    });
 }
