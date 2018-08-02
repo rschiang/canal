@@ -2,6 +2,10 @@
 #include "application_p.h"
 #include <keychain.h>
 
+#define CANAL_KEYSTORE_ID "tw.poren.canal"
+#define CANAL_KEYSTORE_TOKEN "token"
+#define CANAL_KEYSTORE_SECRET "tokenSecret"
+
 Application::Application(int &argc, char** argv)
     : QApplication(argc, argv)
 {
@@ -16,6 +20,20 @@ void Application::initializeComponents()
         qDebug() << plurk->token() << plurk->tokenSecret();
     });
     //plurk->grant();
+
+    // Try keystore
+    auto readJob = new QKeychain::ReadPasswordJob(CANAL_KEYSTORE_ID);
+    readJob->setInsecureFallback(false);
+    readJob->setKey(CANAL_KEYSTORE_TOKEN);
+    readJob->setAutoDelete(false);
+    connect(readJob, &QKeychain::Job::finished, [&](QKeychain::Job *job) {
+        qDebug() << "Read keystore completed";
+        if (job->error())
+            qDebug() << "Error reading keystore" << job->errorString();
+        else
+            qDebug() << static_cast<QKeychain::ReadPasswordJob *>(job)->textData();
+    });
+    readJob->start();
 
     // Create a global menu bar on mac
     this->menu = new QMenuBar();
