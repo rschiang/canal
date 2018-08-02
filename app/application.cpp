@@ -1,6 +1,7 @@
 #include "application.h"
 #include "application_p.h"
 #include <keychain.h>
+#include <QJsonDocument>
 
 #define CANAL_KEYSTORE_ID "tw.poren.canal"
 #define CANAL_KEYSTORE_TOKEN "token"
@@ -20,6 +21,20 @@ void Application::initializeComponents()
         qDebug() << plurk->token() << plurk->tokenSecret();
     });
     //plurk->grant();
+    plurk->restoreTokenCredentials(TEST_TOKEN, TEST_SECRET);
+
+    QNetworkReply *reply = plurk->get(Plurk::apiUrl("Users/me"));
+    connect(reply, &QNetworkReply::finished, [=]() {
+        QJsonParseError parseError;
+        const auto data = reply->readAll();
+        const auto doc = QJsonDocument::fromJson(data, &parseError);
+        if (parseError.error) {
+            qDebug() << "JSON error" << parseError.errorString();
+        } else {
+            const auto obj = doc.object();
+            qDebug() << obj.value("display_name").toString();
+        }
+    });
 
     // Try keystore
     auto readJob = new QKeychain::ReadPasswordJob(CANAL_KEYSTORE_ID);
@@ -27,7 +42,6 @@ void Application::initializeComponents()
     readJob->setKey(CANAL_KEYSTORE_TOKEN);
     readJob->setAutoDelete(false);
     connect(readJob, &QKeychain::Job::finished, [&](QKeychain::Job *job) {
-        qDebug() << "Read keystore completed";
         if (job->error())
             qDebug() << "Error reading keystore" << job->errorString();
         else
@@ -47,7 +61,6 @@ void Application::initializeComponents()
     trayIcon->setToolTip(tr("Canal"));
     trayIcon->show();
     connect(trayIcon, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason) {
-        qDebug() << reason;
         if (reason == QSystemTrayIcon::DoubleClick)
             this->quit();
     });
