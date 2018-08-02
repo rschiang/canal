@@ -1,5 +1,6 @@
 #include "application.h"
 #include "application_p.h"
+#include <keychain.h>
 
 Application::Application(int &argc, char** argv)
     : QApplication(argc, argv)

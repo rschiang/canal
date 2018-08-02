@@ -2,37 +2,38 @@ import qbs
 
 Product {
     name: "qtkeychain"
-    property boolean plaintextStore: false
-    property boolean buildTranslations: false
-    property boolean buildStatic: false
-    property boolean libsecretSupport: true
+    property bool plaintextStore: false
+    property bool buildTranslations: false
+    property bool buildStatic: false
+    property bool libsecretSupport: true
 
     type: buildStatic ? "staticlibrary" : "dynamiclibrary"
 
     Depends { name: "cpp" }
     Depends { name: "Qt.core" }
 
-    cpp.cxxLanguageVersion: "c++11"
+    cpp.defines: [buildStatic ? "QKEYCHAIN_STATICLIB" : "QKEYCHAIN_SHAREDLIB"]
 
     Group {
-        prefix: "qtkeychain/"
+        name: "Source"
         files: ["keychain.cpp", "keychain.h", "keychain_p.h"]
     }
 
     Group {
         condition: plaintextStore
-        prefix: "qtkeychain/"
+        name: "PlainTextStore"
         files: ["plaintextstore.cpp", "plaintextstore_p.h"]
     }
 
     Group {
         condition: buildTranslations
-        prefix: "qtkeychain/"
+        name: "Translations"
         files: ["translations/*.ts"]
     }
 
     Export {
-        cpp.incluePaths: product.sourceDirectory + "qtkeychain/"
+        Depends { name: "cpp" }
+        cpp.includePaths: product.sourceDirectory
     }
 
     // Generic Linux configuration
@@ -44,7 +45,7 @@ Product {
 
     Group {
         condition: qbs.targetOS.contains("linux")
-        prefix: "qtkeychain/"
+        name: "Linux Support"
         files: ["keychain_unix.cpp", "gnomekeyring.cpp", "gnomekeyring_p.h"]
     }
 
@@ -52,20 +53,20 @@ Product {
 
     Properties {
         condition: qbs.targetOS.contains("linux") && libsecretSupport
-        cpp.defines: ["HAVE_LIBSECRET=1"]
+        cpp.defines: outer.concat(["HAVE_LIBSECRET=1"])
     }
 
     // Windows configuration
 
     Properties {
         condition: qbs.targetOS.contains("windows") && plaintextStore
-        cpp.defines: ["USE_CREDENTIAL_STORE=1"]
+        cpp.defines: outer.concat(["USE_CREDENTIAL_STORE=1"])
         cpp.dynamicLibraries: ["Crypt32"]
     }
 
     Group {
         condition: qbs.targetOS.contains("windows")
-        prefix: "qtkeychain/"
+        name: "Windows"
         files: ["keychain_win.cpp", "libsecret.cpp", "libsecret_p.h"]
     }
 
@@ -78,13 +79,13 @@ Product {
 
     Group {
         condition: qbs.targetOS.contains("macos")
-        prefix: "qtkeychain/"
+        name: "macOS"
         files: ["keychain_mac.cpp"]
     }
 
     Group {
         condition: qbs.targetOS.contains("ios")
-        prefix: "qtkeychain/"
+        name: "iOS"
         files: ["keychain_ios.mm"]
     }
 }

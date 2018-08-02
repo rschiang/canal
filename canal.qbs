@@ -5,5 +5,6 @@ Project {
 	references: [
 		"app/app.qbs",
 		"plurq/plurq.qbs",
+        "vendor/qtkeychain/qtkeychain.qbs",
 	]
 }

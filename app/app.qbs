@@ -4,6 +4,7 @@ QtGuiApplication {
     name: "Canal"
 
     Depends { name: "Plurq" }
+    Depends { name: "qtkeychain" }
     Depends {
         name: "Qt"
         submodules: ["quick", "widgets", "network", "networkauth"]
