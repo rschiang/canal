@@ -6,7 +6,7 @@ QtGuiApplication {
     Depends { name: "Plurq" }
     Depends {
         name: "Qt"
-        submodules: ["quick", "network", "networkauth"]
+        submodules: ["quick", "widgets", "network", "networkauth"]
     }
 
     files: [

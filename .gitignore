@@ -43,4 +43,4 @@ target_wrapper.*
 CMakeLists.txt.user*
 
 # Project private imports
-main.h
+application_p.h
