@@ -8,6 +8,7 @@
 
 class Application : public QApplication
 {
+    Q_OBJECT
 public:
     Application(int &argc, char** argv);
 
@@ -19,6 +20,9 @@ protected:
     QSystemTrayIcon *trayIcon;
     QMenu *contextMenu;
     QMenuBar *menuBar;  // macOS/Unix only
+
+signals:
+    void profileUpdated(QString &name);
 
 protected slots:
     void authorized();

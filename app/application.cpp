@@ -49,13 +49,21 @@ void Application::initializeComponents()
 
     // Create context menu
     this->contextMenu = new QMenu();
-    contextMenu->addAction(tr("Not logged in"))->setDisabled(true);
+
+    QAction *accountItem = contextMenu->addAction(tr("Not logged in"));
+    accountItem->setDisabled(true);
+    connect(this, &Application::profileUpdated, [=](QString &name) {
+        accountItem->setText(name);
+    });
+
     contextMenu->addAction(tr("Plurk"));
     contextMenu->addAction(tr("Timeline"));
     contextMenu->addSeparator();
-    auto item = contextMenu->addAction(tr("Notification"));
-    item->setCheckable(true);
-    item->setChecked(true);
+
+    QAction *notificationItem = contextMenu->addAction(tr("Notification"));
+    notificationItem->setCheckable(true);
+    notificationItem->setChecked(true);
+
     contextMenu->addAction(tr("Settings"));
     contextMenu->addSeparator();
     contextMenu->addAction(tr("Quit"), [&] { this->quit(); });
@@ -94,7 +102,8 @@ void Application::authorized()
             qDebug() << "JSON error" << parseError.errorString();
         } else {
             const auto obj = doc.object();
-            qDebug() << obj.value("display_name").toString();
+            QString name = obj.value("display_name").toString();
+            this->profileUpdated(name);
         }
     });
 }
