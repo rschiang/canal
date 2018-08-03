@@ -13,10 +13,16 @@ public:
 
 protected:
     void initializeComponents();
+    void authorize();
 
     Plurk *plurk;
     QSystemTrayIcon *trayIcon;
-    QMenuBar *menu;
+    QMenu *contextMenu;
+    QMenuBar *menuBar;  // macOS/Unix only
+
+protected slots:
+    void authorized();
+    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 };
 
 #endif // APPLICATION_H
