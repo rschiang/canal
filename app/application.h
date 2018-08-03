@@ -16,7 +16,7 @@ protected:
     void initializeComponents();
     void authorize();
 
-    Plurk *plurk;
+    Plurq::Plurk *plurk;
     QSystemTrayIcon *trayIcon;
     QMenu *contextMenu;
     QMenuBar *menuBar;  // macOS/Unix only

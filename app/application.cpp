@@ -17,7 +17,7 @@ Application::Application(int &argc, char** argv)
 void Application::initializeComponents()
 {
     // Initialize Plurk API client
-    this->plurk = new Plurk(APP_KEY, APP_SECRET);
+    this->plurk = new Plurq::Plurk(APP_KEY, APP_SECRET);
     connect(plurk, &QAbstractOAuth::granted, this, &Application::authorized);
 
     // Read token from keychain
@@ -66,7 +66,7 @@ void Application::initializeComponents()
 
     contextMenu->addAction(tr("Settings"));
     contextMenu->addSeparator();
-    contextMenu->addAction(tr("Quit"), [&] { this->quit(); });
+    contextMenu->addAction(tr("Quit"), [=] { this->quit(); });
 
     // Create the tray icon
     this->trayIcon = new QSystemTrayIcon();
@@ -93,7 +93,7 @@ void Application::authorize()
 void Application::authorized()
 {
     // Do stuff related to Plurk
-    QNetworkReply *reply = plurk->get(Plurk::apiUrl("Users/me"));
+    QNetworkReply *reply = plurk->get(Plurq::Plurk::apiUrl("Users/me"));
     connect(reply, &QNetworkReply::finished, [=]() {
         QJsonParseError parseError;
         const auto data = reply->readAll();
