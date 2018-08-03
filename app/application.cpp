@@ -52,8 +52,9 @@ void Application::initializeComponents()
 
     QAction *accountItem = contextMenu->addAction(tr("Not logged in"));
     accountItem->setDisabled(true);
-    connect(this, &Application::profileUpdated, [=](QString &name) {
-        accountItem->setText(name);
+    connect(this, &Application::profileUpdated, [=]() {
+        QString text = tr("%1 · @%2").arg(profile->displayName()).arg(profile->nickName());
+        accountItem->setText(text);
     });
 
     contextMenu->addAction(tr("Plurk"));
@@ -93,17 +94,12 @@ void Application::authorize()
 void Application::authorized()
 {
     // Do stuff related to Plurk
-    QNetworkReply *reply = plurk->get(Plurq::Plurk::apiUrl("Users/me"));
+    QNetworkReply *reply = plurk->get("Users/me");
     connect(reply, &QNetworkReply::finished, [=]() {
-        QJsonParseError parseError;
-        const auto data = reply->readAll();
-        const auto doc = QJsonDocument::fromJson(data, &parseError);
-        if (parseError.error) {
-            qDebug() << "JSON error" << parseError.errorString();
-        } else {
-            const auto obj = doc.object();
-            QString name = obj.value("display_name").toString();
-            this->profileUpdated(name);
+        auto profile = new Plurq::Profile(reply);
+        if (profile->valid()) {
+            this->profile = profile;
+            this->profileUpdated();
         }
     });
 }

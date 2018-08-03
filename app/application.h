@@ -4,7 +4,7 @@
 #include <QApplication>
 #include <QSystemTrayIcon>
 #include <QMenuBar>
-#include <plurk.h>
+#include <Plurk>
 
 class Application : public QApplication
 {
@@ -17,12 +17,13 @@ protected:
     void authorize();
 
     Plurq::Plurk *plurk;
+    Plurq::Profile *profile;
     QSystemTrayIcon *trayIcon;
     QMenu *contextMenu;
     QMenuBar *menuBar;  // macOS/Unix only
 
 signals:
-    void profileUpdated(QString &name);
+    void profileUpdated();
 
 protected slots:
     void authorized();
