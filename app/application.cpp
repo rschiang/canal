@@ -87,7 +87,25 @@ void Application::authorize()
     plurk->restoreTokenCredentials(TEST_TOKEN, TEST_SECRET);
     this->authorized();
 #else
-    this->plurk->grant();
+    plurk->grant();
+
+    // Save the token to keychain
+    auto writeJob = new QKeychain::WritePasswordJob(CANAL_KEYSTORE_ID);
+    writeJob->setInsecureFallback(false);
+    writeJob->setKey(CANAL_KEYSTORE_TOKEN);
+    writeJob->setTextData(plurk->token() + "&" + plurk->tokenSecret());
+    connect(writeJob, &QKeychain::Job::finished, [&](QKeychain::Job *job) {
+        auto error = job->error();
+        if (!error) {
+            qDebug() << "Token saved to keychain";
+        } else {
+            qDebug() << "Error reading keychain" << job->errorString();
+            QMessageBox::critical(nullptr, tr("Canal"),
+                                  tr("Unable to save credentials to keychain: %1.").arg(job->errorString()),
+                                  QMessageBox::Ok);
+        }
+    });
+    writeJob->start();
 #endif
 }
 

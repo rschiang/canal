@@ -27,7 +27,6 @@ protected slots:
     void initiate();
     void send();
     void abort();
-    void finished();
     void timeout();
     void networkStateChanged(QNetworkAccessManager::NetworkAccessibility status);
     void powerStateChanged(bool suspend);
@@ -38,7 +37,7 @@ protected:
     QNetworkAccessManager *manager;
     QNetworkReply *activeReply = nullptr;
 
-    QUrl url;
+    QString url;
     QString name;
     bool enabled = false;
     int offset = BAD_OFFSET;

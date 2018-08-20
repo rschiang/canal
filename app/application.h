@@ -5,7 +5,6 @@
 #include <QSystemTrayIcon>
 #include <QMenuBar>
 #include <Plurk>
-#include "comet.h"
 
 class Application : public QApplication
 {
@@ -19,7 +18,6 @@ protected:
 
     Plurq::Plurk *plurk;
     Plurq::Profile *profile;
-    Comet *comet;
     QSystemTrayIcon *trayIcon;
     QMenu *contextMenu;
     QMenuBar *menuBar;  // macOS/Unix only
