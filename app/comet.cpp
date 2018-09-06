@@ -36,7 +36,19 @@ void Comet::stop()
 
 void Comet::updateAlerts()
 {
-    // TODO: Fetch alerts
+    QNetworkReply *reply = plurk->get("Alerts/getActive");
+    connect(reply, &QNetworkReply::finished, [=]() {
+        Plurq::Array array(reply);
+        if (array.valid()) {
+            QDateTime now = QDateTime::currentDateTime();
+            for (Plurq::Entity i : array) {
+                if (i.dateValue(QLatin1String("posted")).secsTo(now) > (60 * 60))
+                    continue;   // Ignore alerts earlier than 1 hour
+                qDebug() << "Alert type:" << i.stringValue(QLatin1String("type"));
+            }
+        }
+        reply->deleteLater();
+    });
 }
 
 void Comet::initiate()
