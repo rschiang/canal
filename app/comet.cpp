@@ -1,5 +1,8 @@
 #include "comet.h"
 
+#define JS_CALLBACK_START "CometChannel.scriptCallback("
+#define JS_CALLBACK_END ");"
+
 Comet::Comet(Plurq::Plurk *plurk, QObject *parent) : QObject(parent)
 {
     this->plurk = plurk;
@@ -18,13 +21,22 @@ Comet::Comet(Plurq::Plurk *plurk, QObject *parent) : QObject(parent)
 
 void Comet::start()
 {
+    qDebug() << "Starting comet";
+    if (name.isEmpty())
+        initiate();
     timer->start();
 }
 
 void Comet::stop()
 {
+    qDebug() << "Stopping comet";
     timer->stop();
     abort();
+}
+
+void Comet::updateAlerts()
+{
+    // TODO: Fetch alerts
 }
 
 void Comet::initiate()
@@ -33,12 +45,14 @@ void Comet::initiate()
     connect(reply, &QNetworkReply::finished, [=]() {
         Plurq::Entity entity(reply);
         if (entity.valid()) {
-            this->name = entity[QLatin1String("channel_name")].toString();
-            this->url = entity[QLatin1String("comet_server")].toString();
+            this->name = entity.stringValue(QLatin1String("channel_name"));
+            this->url = entity.stringValue(QLatin1String("comet_server"));
+            qDebug() << "Comet channel" << this->name;
         } else {
             qDebug() << "Unable to fetch comet channel URL";
             this->name = QString::null;
         }
+        reply->deleteLater();
     });
 }
 
@@ -48,7 +62,7 @@ void Comet::send()
         return; // Do nothing if channel URL or network isn't ready
 
     // Build request
-    QUrl url(QStringLiteral("%1&offset=%2").arg(this->url, this->offset));
+    QUrl url(QStringLiteral("%1&offset=%2&js_callback=").arg(this->url, this->offset));
     QNetworkRequest request(url);
     request.setAttribute(QNetworkRequest::BackgroundRequestAttribute, true);
     request.setPriority(QNetworkRequest::LowPriority);
@@ -56,10 +70,20 @@ void Comet::send()
     // Send the request
     QNetworkReply *reply = manager->get(request);
     connect(reply, &QNetworkReply::finished, [=]() {
-        // Read comet response
-        Plurq::Entity entity(reply);
+        // Read comet response manually
+        QByteArray json = reply->readAll();
+        if (json.startsWith(JS_CALLBACK_START) && json.endsWith(JS_CALLBACK_END)) {
+            // Chop off the JSONP wrapper as Qt cannot process it
+            // -1 to exclude the string terminator (\0)
+            json.remove(0, sizeof(JS_CALLBACK_START) - 1)
+                .chop(sizeof(JS_CALLBACK_END) - 1);
+        }
+
+        Plurq::Entity entity(json);
         if (entity.valid()) {
             int offset = entity[QLatin1String("new_offset")].toInt(BAD_OFFSET);
+            qDebug() << "New offset:" << offset;
+
             if (offset == BAD_OFFSET) {
                 this->offset = EMPTY_OFFSET;
                 // TODO: Resync data
@@ -73,6 +97,9 @@ void Comet::send()
                         this->newPlurk(); // TODO: Emit New Plurk
                     else if (type == QLatin1String("new_response"))
                         this->newResponse(); // TODO: Emit New Response
+                    else if (type == QLatin1String("update_notification"))
+                        this->updateAlerts(); // TODO: Emit Notification
+                    qDebug() << "Type:" << type;
                 }
             }
         }

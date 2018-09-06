@@ -22,6 +22,7 @@ signals:
 public slots:
     void start();
     void stop();
+    void updateAlerts();
 
 protected slots:
     void initiate();

@@ -78,6 +78,9 @@ void Application::initializeComponents()
     trayIcon->setContextMenu(contextMenu);
     connect(trayIcon, &QSystemTrayIcon::activated, this, &Application::trayIconActivated);
     trayIcon->show();
+
+    // Create comet
+    this->comet = new Comet(plurk, this);
 }
 
 void Application::authorize()
@@ -118,6 +121,7 @@ void Application::authorized()
         if (profile->valid()) {
             this->profile = profile;
             this->profileUpdated();
+            comet->start();
         }
     });
 }
