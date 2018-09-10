@@ -14,9 +14,14 @@ public:
     Application(int &argc, char** argv);
     ~Application();
 
+public slots:
+    void updateProfile();
+
 protected:
     void initializeComponents();
     void authorize();
+    void loadCredentials();
+    void saveCredentials();
 
     Plurq::Plurk *plurk;
     Plurq::Profile *profile;
@@ -25,10 +30,8 @@ protected:
     QMenuBar *menuBar;  // macOS/Unix only
 
 signals:
-    void profileUpdated(Plurq::Profile *profile);
-
-protected slots:
     void authorized();
+    void profileUpdated(Plurq::Profile *profile);
 };
 
 #endif // APPLICATION_H
