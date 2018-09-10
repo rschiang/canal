@@ -36,13 +36,16 @@ void Application::initializeComponents()
     connect(this, &Application::authorized, comet, &Comet::start);
     connect(comet, &Comet::newPlurk, [=](Plurq::Post post) {
         QString title = tr("%1 %2").arg(post.ownerId()).arg(post.translatedQualifier());
-        trayIcon->showMessage(title, post.content(), QSystemTrayIcon::NoIcon, 5000);
+        trayIcon->showMessage(title, post.rawContent(), QSystemTrayIcon::NoIcon, 5000);
     });
     connect(comet, &Comet::newResponse, [=](Plurq::Entity e) {
-        auto response = e.objectValue(QLatin1String("response"));
-        QString responder = e.objectValue(QLatin1String("user"))[QString::number(response["user_id"].toInt())].toObject()["display_name"].toString();
-        QString title = tr("%1 responded").arg(responder);
-        trayIcon->showMessage(title, response["content_raw"].toString(), QSystemTrayIcon::NoIcon, 2500);
+        Plurq::Post post = e.objectValue(QLatin1String("plurk"));
+        if (!(post.responded() || post.mentioned() || post.ownerId() == post.intValue(QLatin1String("user_id"))))
+            return; // Skip anything that isn't noteworthy
+        Plurq::Post response = e.objectValue(QLatin1String("response"));
+        Plurq::Profile responder = e.objectValue(QLatin1String("user"))[QString::number(response.intValue(QLatin1String("user_id")))].toObject();
+        QString title = tr("%1 responded to %2").arg(responder.displayName()).arg(post.rawContent());
+        trayIcon->showMessage(title, response.rawContent(), QSystemTrayIcon::NoIcon, 2500);
     });
 }
 
