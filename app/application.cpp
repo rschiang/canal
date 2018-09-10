@@ -34,6 +34,16 @@ void Application::initializeComponents()
     // Create comet
     this->comet = new Comet(plurk, this);
     connect(this, &Application::authorized, comet, &Comet::start);
+    connect(comet, &Comet::newPlurk, [=](Plurq::Post post) {
+        QString title = tr("%1 %2").arg(post.ownerId()).arg(post.translatedQualifier());
+        trayIcon->showMessage(title, post.content(), QSystemTrayIcon::NoIcon, 5000);
+    });
+    connect(comet, &Comet::newResponse, [=](Plurq::Entity e) {
+        auto response = e.objectValue(QLatin1String("response"));
+        QString responder = e.objectValue(QLatin1String("user"))[QString::number(response["user_id"].toInt())].toObject()["display_name"].toString();
+        QString title = tr("%1 responded").arg(responder);
+        trayIcon->showMessage(title, response["content_raw"].toString(), QSystemTrayIcon::NoIcon, 2500);
+    });
 }
 
 Application::~Application()

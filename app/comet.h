@@ -17,8 +17,8 @@ public:
     ~Comet();
 
 signals:
-    void newPlurk();
-    void newResponse();
+    void newPlurk(Plurq::Post post);
+    void newResponse(Plurq::Entity e);
 
 public slots:
     void start();

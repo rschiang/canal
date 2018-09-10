@@ -106,14 +106,13 @@ void Comet::send()
                 // TODO: Resync data
             } else {
                 this->offset = offset;
-                auto data = entity[QLatin1String("data")].toArray();
-                for (auto i : data) {
-                    QJsonObject item = i.toObject();
+                Plurq::Array data(entity.arrayValue(QLatin1String("data")));
+                for (QJsonObject item : data) {
                     QString type = item[QLatin1String("type")].toString();
                     if (type == QLatin1String("new_plurk"))
-                        this->newPlurk(); // TODO: Emit New Plurk
+                        emit newPlurk(item);
                     else if (type == QLatin1String("new_response"))
-                        this->newResponse(); // TODO: Emit New Response
+                        emit newResponse(item);
                     else if (type == QLatin1String("update_notification"))
                         this->updateAlerts(); // TODO: Emit Notification
                     qDebug() << "Type:" << type;
