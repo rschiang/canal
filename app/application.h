@@ -2,16 +2,17 @@
 #define APPLICATION_H
 
 #include <QApplication>
-#include <QSystemTrayIcon>
 #include <QMenuBar>
 #include <Plurk>
 #include "comet.h"
+#include "trayicon.h"
 
 class Application : public QApplication
 {
     Q_OBJECT
 public:
     Application(int &argc, char** argv);
+    ~Application();
 
 protected:
     void initializeComponents();
@@ -20,16 +21,14 @@ protected:
     Plurq::Plurk *plurk;
     Plurq::Profile *profile;
     Comet *comet;
-    QSystemTrayIcon *trayIcon;
-    QMenu *contextMenu;
+    TrayIcon *trayIcon;
     QMenuBar *menuBar;  // macOS/Unix only
 
 signals:
-    void profileUpdated();
+    void profileUpdated(Plurq::Profile *profile);
 
 protected slots:
     void authorized();
-    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 };
 
 #endif // APPLICATION_H

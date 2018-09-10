@@ -47,40 +47,22 @@ void Application::initializeComponents()
     // Create a global menu bar on mac
     this->menuBar = new QMenuBar();
 
-    // Create context menu
-    this->contextMenu = new QMenu();
-
-    QAction *accountItem = contextMenu->addAction(tr("Not logged in"));
-    accountItem->setDisabled(true);
-    connect(this, &Application::profileUpdated, [=]() {
-        QString text = tr("%1 · @%2").arg(profile->displayName()).arg(profile->nickName());
-        accountItem->setText(text);
-    });
-
-    contextMenu->addAction(tr("Plurk"));
-    contextMenu->addAction(tr("Timeline"));
-    contextMenu->addSeparator();
-
-    QAction *notificationItem = contextMenu->addAction(tr("Notification"));
-    notificationItem->setCheckable(true);
-    notificationItem->setChecked(true);
-
-    contextMenu->addAction(tr("Settings"));
-    contextMenu->addSeparator();
-    contextMenu->addAction(tr("Quit"), [=] { this->quit(); });
-
     // Create the tray icon
-    this->trayIcon = new QSystemTrayIcon();
-    QIcon icon(":/res/mac/tray_icon.png");
-    icon.setIsMask(true);
-    trayIcon->setIcon(icon);
-    trayIcon->setToolTip(tr("Canal"));
-    trayIcon->setContextMenu(contextMenu);
-    connect(trayIcon, &QSystemTrayIcon::activated, this, &Application::trayIconActivated);
+    this->trayIcon = new TrayIcon();
+    connect(trayIcon, &TrayIcon::quitRequested, this, &Application::quit);
+    connect(this, &Application::profileUpdated, trayIcon, &TrayIcon::updateProfile);
     trayIcon->show();
 
     // Create comet
     this->comet = new Comet(plurk, this);
+}
+
+Application::~Application()
+{
+    delete comet;
+    delete trayIcon;
+    delete menuBar;
+    delete plurk;
 }
 
 void Application::authorize()
@@ -120,13 +102,8 @@ void Application::authorized()
         auto profile = new Plurq::Profile(reply);
         if (profile->valid()) {
             this->profile = profile;
-            this->profileUpdated();
+            emit profileUpdated(profile);
             comet->start();
         }
     });
-}
-
-void Application::trayIconActivated(QSystemTrayIcon::ActivationReason reason) {
-    if (reason == QSystemTrayIcon::DoubleClick)
-        this->quit();
 }

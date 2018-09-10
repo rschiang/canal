@@ -14,6 +14,7 @@ class Comet : public QObject
     Q_OBJECT
 public:
     explicit Comet(Plurq::Plurk *plurk, QObject *parent = nullptr);
+    ~Comet();
 
 signals:
     void newPlurk();

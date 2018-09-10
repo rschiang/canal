@@ -19,6 +19,11 @@ Comet::Comet(Plurq::Plurk *plurk, QObject *parent) : QObject(parent)
     // TODO: Listen to OS power events
 }
 
+Comet::~Comet()
+{
+    delete manager;
+}
+
 void Comet::start()
 {
     qDebug() << "Starting comet";
