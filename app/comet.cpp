@@ -24,6 +24,11 @@ Comet::~Comet()
     delete manager;
 }
 
+void Comet::setCache(Cache *cache)
+{
+    this->cache = cache;
+}
+
 void Comet::start()
 {
     qDebug() << "Starting comet";
@@ -109,10 +114,21 @@ void Comet::send()
                 Plurq::Array data(entity.arrayValue(QLatin1String("data")));
                 for (QJsonObject item : data) {
                     QString type = item[QLatin1String("type")].toString();
-                    if (type == QLatin1String("new_plurk"))
-                        emit newPlurk(item);
-                    else if (type == QLatin1String("new_response"))
+                    if (type == QLatin1String("new_plurk")) {
+                        cache->setPost(item);
+                        emit newPlurk(item[QLatin1String("id")].toInt());
+                    }
+                    else if (type == QLatin1String("new_response")) {
+                        // Store acquired users
+                        for (auto u : item[QLatin1String("user")].toObject())
+                            cache->setUser(u.toObject());
+
+                        // Store the plurk post
+                        cache->setPost(item[QLatin1String("plurk")].toObject());
+
+                        // TODO: Store response
                         emit newResponse(item);
+                    }
                     else if (type == QLatin1String("update_notification"))
                         this->updateAlerts(); // TODO: Emit Notification
                     qDebug() << "Type:" << type;

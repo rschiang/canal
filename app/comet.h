@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QNetworkAccessManager>
 #include <Plurk>
+#include "cache.h"
 
 #define EMPTY_OFFSET -1
 #define BAD_OFFSET -3
@@ -15,9 +16,10 @@ class Comet : public QObject
 public:
     explicit Comet(Plurq::Plurk *plurk, QObject *parent = nullptr);
     ~Comet();
+    void setCache(Cache *cache);
 
 signals:
-    void newPlurk(Plurq::Post post);
+    void newPlurk(int postId);
     void newResponse(Plurq::Entity e);
 
 public slots:
@@ -35,6 +37,7 @@ protected slots:
 
 protected:
     Plurq::Plurk* plurk;
+    Cache *cache;
     QTimer *timer;
     QNetworkAccessManager *manager;
     QNetworkReply *activeReply = nullptr;

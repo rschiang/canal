@@ -33,10 +33,16 @@ void Application::initializeComponents()
 
     // Create comet
     this->comet = new Comet(plurk, this);
+    comet->setCache(&cache);
     connect(this, &Application::authorized, comet, &Comet::start);
-    connect(comet, &Comet::newPlurk, [=](Plurq::Post post) {
-        QString title = tr("%1 %2").arg(post.ownerId()).arg(post.translatedQualifier());
-        trayIcon->showMessage(title, post.rawContent(), QSystemTrayIcon::NoIcon, 5000);
+    connect(comet, &Comet::newPlurk, [=](int postId) {
+        // Get item from cache
+        Plurq::Post post = cache.post(postId);
+        Plurq::Profile owner = cache.user(post.ownerId());
+        trayIcon->showMessage(
+                    tr("%1 %2").arg(owner.displayName()).arg(post.translatedQualifier()),
+                    post.rawContent(),
+                    QSystemTrayIcon::NoIcon, 5000);
     });
     connect(comet, &Comet::newResponse, [=](Plurq::Entity e) {
         Plurq::Post post = e.objectValue(QLatin1String("plurk"));
@@ -119,12 +125,23 @@ void Application::saveCredentials()
 
 void Application::updateProfile()
 {
-    QNetworkReply *reply = plurk->get("Users/me");
+    QNetworkReply *reply = plurk->get("Profile/getOwnProfile");
     connect(reply, &QNetworkReply::finished, [=]() {
-        auto profile = new Plurq::Profile(reply);
-        if (profile->valid()) {
-            this->profile = profile;
-            emit profileUpdated(profile);
+        Plurq::Entity entity(reply);
+        if (entity.valid()) {
+            // Read user profile
+            Plurq::Profile profile = entity.objectValue(QLatin1String("user_info"));
+            cache.setCurrentUserId(profile.id());
+            cache.setUser(profile);
+            emit profileUpdated(&profile);
+
+            // Store acquired users and plurks in cache
+            for (auto u : entity.objectValue(QLatin1String("plurk_users")))
+                cache.setUser(u.toObject());
+
+            // Store plurks too
+            for (auto p : entity.objectValue(QLatin1String("plurks")))
+                cache.setPost(p.toObject());
         }
     });
 }

@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QMenuBar>
 #include <Plurk>
+#include "cache.h"
 #include "comet.h"
 #include "trayicon.h"
 
@@ -24,7 +25,7 @@ protected:
     void saveCredentials();
 
     Plurq::Plurk *plurk;
-    Plurq::Profile *profile;
+    Cache cache;
     Comet *comet;
     TrayIcon *trayIcon;
     QMenuBar *menuBar;  // macOS/Unix only
