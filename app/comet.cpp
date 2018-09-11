@@ -44,6 +44,30 @@ void Comet::stop()
     abort();
 }
 
+void Comet::updateProfile()
+{
+    QNetworkReply *reply = plurk->get("Profile/getOwnProfile");
+    connect(reply, &QNetworkReply::finished, [=]() {
+        Plurq::Entity entity(reply);
+        if (entity.valid()) {
+            // Read user profile
+            Plurq::Profile profile = entity.objectValue(QLatin1String("user_info"));
+            cache->setCurrentUserId(profile.id());
+            cache->setUser(profile);
+            emit profileUpdated(&profile);
+
+            // Store acquired users and plurks in cache
+            for (auto u : entity.objectValue(QLatin1String("plurk_users")))
+                cache->setUser(u.toObject());
+
+            // Store plurks too
+            for (auto p : entity.objectValue(QLatin1String("plurks")))
+                cache->setPost(p.toObject());
+        }
+    });
+}
+
+
 void Comet::updateAlerts()
 {
     QNetworkReply *reply = plurk->get("Alerts/getActive");

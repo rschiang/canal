@@ -15,9 +15,6 @@ public:
     Application(int &argc, char** argv);
     ~Application();
 
-public slots:
-    void updateProfile();
-
 protected:
     void initializeComponents();
     void authorize();
@@ -32,7 +29,6 @@ protected:
 
 signals:
     void authorized();
-    void profileUpdated(Plurq::Profile *profile);
 };
 
 #endif // APPLICATION_H

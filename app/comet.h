@@ -21,10 +21,12 @@ public:
 signals:
     void newPlurk(int postId);
     void newResponse(int postId, int responseId);
+    void profileUpdated(Plurq::Profile *profile);
 
 public slots:
     void start();
     void stop();
+    void updateProfile();
     void updateAlerts();
 
 protected slots:

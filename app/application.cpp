@@ -11,7 +11,6 @@ Application::Application(int &argc, char** argv)
     : QApplication(argc, argv)
 {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    connect(this, &Application::authorized, this, &Application::updateProfile);
     initializeComponents();
 }
 
@@ -28,12 +27,13 @@ void Application::initializeComponents()
     // Create the tray icon
     this->trayIcon = new TrayIcon();
     connect(trayIcon, &TrayIcon::quitRequested, this, &Application::quit);
-    connect(this, &Application::profileUpdated, trayIcon, &TrayIcon::updateProfile);
+    connect(comet, &Comet::profileUpdated, trayIcon, &TrayIcon::updateProfile);
     trayIcon->show();
 
     // Create comet
     this->comet = new Comet(plurk, this);
     comet->setCache(&cache);
+    connect(this, &Application::authorized, comet, &Comet::updateProfile);
     connect(this, &Application::authorized, comet, &Comet::start);
     connect(comet, &Comet::newPlurk, [=](int postId) {
         // Get item from cache
@@ -128,27 +128,4 @@ void Application::saveCredentials()
         }
     });
     writeJob->start();
-}
-
-void Application::updateProfile()
-{
-    QNetworkReply *reply = plurk->get("Profile/getOwnProfile");
-    connect(reply, &QNetworkReply::finished, [=]() {
-        Plurq::Entity entity(reply);
-        if (entity.valid()) {
-            // Read user profile
-            Plurq::Profile profile = entity.objectValue(QLatin1String("user_info"));
-            cache.setCurrentUserId(profile.id());
-            cache.setUser(profile);
-            emit profileUpdated(&profile);
-
-            // Store acquired users and plurks in cache
-            for (auto u : entity.objectValue(QLatin1String("plurk_users")))
-                cache.setUser(u.toObject());
-
-            // Store plurks too
-            for (auto p : entity.objectValue(QLatin1String("plurks")))
-                cache.setPost(p.toObject());
-        }
-    });
 }
