@@ -44,14 +44,21 @@ void Application::initializeComponents()
                     post.rawContent(),
                     QSystemTrayIcon::NoIcon, 5000);
     });
-    connect(comet, &Comet::newResponse, [=](Plurq::Entity e) {
-        Plurq::Post post = e.objectValue(QLatin1String("plurk"));
-        if (!(post.responded() || post.mentioned() || post.ownerId() == post.intValue(QLatin1String("user_id"))))
-            return; // Skip anything that isn't noteworthy
-        Plurq::Post response = e.objectValue(QLatin1String("response"));
-        Plurq::Profile responder = e.objectValue(QLatin1String("user"))[QString::number(response.intValue(QLatin1String("user_id")))].toObject();
-        QString title = tr("%1 responded to %2").arg(responder.displayName()).arg(post.rawContent());
-        trayIcon->showMessage(title, response.rawContent(), QSystemTrayIcon::NoIcon, 2500);
+    connect(comet, &Comet::newResponse, [=](int postId, int responseId) {
+        // Get item from cache
+        Plurq::Post post = cache.post(postId);
+        Plurq::Post response = cache.response(responseId);
+        Plurq::Profile owner = cache.user(post.ownerId());
+        Plurq::Profile responder = cache.user(response.intValue(QLatin1String("user_id")));
+
+         // Skip anything that isn't noteworthy
+        if (!(post.responded() || post.mentioned() || post.ownerId() == cache.current().id()))
+            return;
+
+        trayIcon->showMessage(
+                    tr("%1 responded to %2's plurk").arg(responder.displayName()).arg(owner.displayName()),
+                    response.rawContent(),
+                    QSystemTrayIcon::NoIcon, 2500);
     });
 }
 

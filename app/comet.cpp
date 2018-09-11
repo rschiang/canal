@@ -115,19 +115,19 @@ void Comet::send()
                 for (QJsonObject item : data) {
                     QString type = item[QLatin1String("type")].toString();
                     if (type == QLatin1String("new_plurk")) {
-                        cache->setPost(item);
-                        emit newPlurk(item[QLatin1String("id")].toInt());
+                        int postId = cache->setPost(item);
+                        emit newPlurk(postId);
                     }
                     else if (type == QLatin1String("new_response")) {
                         // Store acquired users
                         for (auto u : item[QLatin1String("user")].toObject())
                             cache->setUser(u.toObject());
 
-                        // Store the plurk post
-                        cache->setPost(item[QLatin1String("plurk")].toObject());
+                        // Store the plurk post and the response
+                        int postId = cache->setPost(item[QLatin1String("plurk")].toObject());
+                        int responseId = cache->setResponse(item[QLatin1String("response")].toObject());
 
-                        // TODO: Store response
-                        emit newResponse(item);
+                        emit newResponse(postId, responseId);
                     }
                     else if (type == QLatin1String("update_notification"))
                         this->updateAlerts(); // TODO: Emit Notification

@@ -16,12 +16,17 @@ Plurq::Post& Cache::post(int postId)
     return posts[postId];
 }
 
+Plurq::Post& Cache::response(int responseId)
+{
+    return responses[responseId];
+}
+
 Plurq::Profile& Cache::current()
 {
     return users[currentUserId];
 }
 
-void Cache::setUser(Plurq::Profile profile)
+int Cache::setUser(Plurq::Profile profile)
 {
     Q_ASSERT(profile.valid());
 
@@ -31,14 +36,27 @@ void Cache::setUser(Plurq::Profile profile)
     } else {
         users[userId] = profile;
     }
+
+    return userId;
 }
 
-void Cache::setPost(Plurq::Post post)
+int Cache::setPost(Plurq::Post post)
 {
     Q_ASSERT(post.valid());
+    int postId = post.id();
     // We always receive full plurk posts in comet,
     // so go ahead and replace it.
-    posts[post.id()] = post;
+    posts[postId] = post;
+    return postId;
+}
+
+int Cache::setResponse(Plurq::Post response)
+{
+    Q_ASSERT(response.valid());
+    int responseId = response.id();
+    // TODO: Associate plurk with response
+    responses[responseId] = response;
+    return responseId;
 }
 
 void Cache::setCurrentUserId(int userId)

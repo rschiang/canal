@@ -20,7 +20,7 @@ public:
 
 signals:
     void newPlurk(int postId);
-    void newResponse(Plurq::Entity e);
+    void newResponse(int postId, int responseId);
 
 public slots:
     void start();

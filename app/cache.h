@@ -15,6 +15,7 @@ public:
 
     Plurq::Profile& user(int userId);
     Plurq::Post& post(int postId);
+    Plurq::Post& response(int responseId);
     Plurq::Profile& current();
 
 signals:
@@ -23,13 +24,15 @@ signals:
     // postChanged
 
 public slots:
-    void setUser(Plurq::Profile profile);
-    void setPost(Plurq::Post post);
+    int setUser(Plurq::Profile profile);
+    int setPost(Plurq::Post post);
+    int setResponse(Plurq::Post response);
     void setCurrentUserId(int userId);
 
 protected:
     QHash<int, Plurq::Profile> users;
     QHash<int, Plurq::Post> posts;
+    QHash<int, Plurq::Post> responses;
     int currentUserId = CACHE_INVALID_USER;
 };
 
