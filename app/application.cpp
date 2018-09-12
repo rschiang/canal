@@ -3,6 +3,7 @@
 #include <keychain.h>
 #include <QJsonDocument>
 #include <QMessageBox>
+#include "notification.h"
 
 #define CANAL_KEYSTORE_ID "tw.poren.canal"
 #define CANAL_KEYSTORE_TOKEN "token"
@@ -38,10 +39,15 @@ void Application::initializeComponents()
         // Get item from cache
         Plurq::Post post = cache.post(postId);
         Plurq::Profile owner = cache.user(post.ownerId());
-        trayIcon->showMessage(
+
+        // Skip own posts
+        if (post.ownerId() == cache.current().id())
+            return;
+
+        Notification::display(
+                    tr("Plurk from your timeline"),
                     tr("%1 %2").arg(owner.displayName()).arg(post.translatedQualifier()),
-                    post.rawContent(),
-                    QSystemTrayIcon::NoIcon, 5000);
+                    post.rawContent());
     });
     connect(comet, &Comet::newResponse, [=](int postId, int responseId) {
         // Get item from cache
@@ -54,10 +60,10 @@ void Application::initializeComponents()
         if (!(post.responded() || post.mentioned() || post.ownerId() == cache.current().id()))
             return;
 
-        trayIcon->showMessage(
-                    tr("%1 responded to %2's plurk").arg(responder.displayName()).arg(owner.displayName()),
-                    response.rawContent(),
-                    QSystemTrayIcon::NoIcon, 2500);
+        Notification::display(
+                    tr("Response on %1's plurk").arg(owner.displayName()),
+                    tr("%1 %2").arg(responder.displayName()).arg(response.qualifier()), // TODO: Translate
+                    response.rawContent());
     });
 
     // Authorize application

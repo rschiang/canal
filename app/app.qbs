@@ -24,4 +24,16 @@ QtGuiApplication {
         name: "Source"
         files: ["*.cpp", "*.h"]
     }
+
+    Properties {
+        condition: qbs.targetOS.contains("macos")
+        cpp.dynamicLibraries: "objc"
+        cpp.frameworks: "Foundation"
+    }
+
+    Group {
+        name: "macOS"
+        condition: qbs.targetOS.contains("macos")
+        files: ["*.mm"]
+    }
 }
