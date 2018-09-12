@@ -19,7 +19,6 @@ void Application::initializeComponents()
     // Initialize Plurk API client
     this->plurk = new Plurq::Plurk(APP_KEY, APP_SECRET);
     connect(plurk, &QAbstractOAuth::granted, this, &Application::authorized);
-    loadCredentials();
 
     // Create a global menu bar on mac
     this->menuBar = new QMenuBar();
@@ -27,7 +26,6 @@ void Application::initializeComponents()
     // Create the tray icon
     this->trayIcon = new TrayIcon();
     connect(trayIcon, &TrayIcon::quitRequested, this, &Application::quit);
-    connect(comet, &Comet::profileUpdated, trayIcon, &TrayIcon::updateProfile);
     trayIcon->show();
 
     // Create comet
@@ -35,6 +33,7 @@ void Application::initializeComponents()
     comet->setCache(&cache);
     connect(this, &Application::authorized, comet, &Comet::updateProfile);
     connect(this, &Application::authorized, comet, &Comet::start);
+    connect(comet, &Comet::profileUpdated, trayIcon, &TrayIcon::updateProfile);
     connect(comet, &Comet::newPlurk, [=](int postId) {
         // Get item from cache
         Plurq::Post post = cache.post(postId);
@@ -60,6 +59,9 @@ void Application::initializeComponents()
                     response.rawContent(),
                     QSystemTrayIcon::NoIcon, 2500);
     });
+
+    // Authorize application
+    loadCredentials();
 }
 
 Application::~Application()

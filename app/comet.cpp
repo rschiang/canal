@@ -63,7 +63,12 @@ void Comet::updateProfile()
             // Store plurks too
             for (auto p : entity.objectValue(QLatin1String("plurks")))
                 cache->setPost(p.toObject());
+
+            // Fetch alerts if any
+            if (entity.intValue(QLatin1String("alerts_count")) > 0)
+                updateAlerts();
         }
+        reply->deleteLater();
     });
 }
 
@@ -131,8 +136,9 @@ void Comet::send()
             qDebug() << "New offset:" << offset;
 
             if (offset == BAD_OFFSET) {
+                // Clear offset and refresh profile
                 this->offset = EMPTY_OFFSET;
-                // TODO: Resync data
+                updateProfile();
             } else {
                 this->offset = offset;
                 Plurq::Array data(entity.arrayValue(QLatin1String("data")));
@@ -141,8 +147,7 @@ void Comet::send()
                     if (type == QLatin1String("new_plurk")) {
                         int postId = cache->setPost(item);
                         emit newPlurk(postId);
-                    }
-                    else if (type == QLatin1String("new_response")) {
+                    } else if (type == QLatin1String("new_response")) {
                         // Store acquired users
                         for (auto u : item[QLatin1String("user")].toObject())
                             cache->setUser(u.toObject());
@@ -152,10 +157,13 @@ void Comet::send()
                         int responseId = cache->setResponse(item[QLatin1String("response")].toObject());
 
                         emit newResponse(postId, responseId);
+                    } else if (type == QLatin1String("update_notification")) {
+                        // Refresh alerts and see if there were any
+                        updateAlerts();
+                    } else {
+                        // Ignore unknown messages
+                        qDebug() << "Unknown type" << type;
                     }
-                    else if (type == QLatin1String("update_notification"))
-                        this->updateAlerts(); // TODO: Emit Notification
-                    qDebug() << "Type:" << type;
                 }
             }
         }
