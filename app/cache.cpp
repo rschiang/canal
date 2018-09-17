@@ -1,6 +1,10 @@
 #include "cache.h"
 
-Cache::Cache(QObject *parent) : QObject(parent)
+Cache::Cache(QObject *parent)
+    : QObject(parent),
+      users(QHash<int, Plurq::Profile>()),
+      posts(QHash<int, Plurq::Post>()),
+      responses(QHash<int, Plurq::Post>())
 {
     users.reserve(50);
     posts.reserve(200);

@@ -1,7 +1,7 @@
 #include "notification.h"
 
 Notification::Notification(QObject *parent)
-    : QObject(parent) {}
+    : QObject(parent), queue(QList<Item>()) {}
 
 void Notification::setCache(Cache *cache)
 {
