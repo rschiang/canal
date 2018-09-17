@@ -1,15 +1,13 @@
 #include "application.h"
 #include "application_p.h"
 #include <keychain.h>
-#include <QJsonDocument>
 #include <QMessageBox>
-#include "notification.h"
 
 #define CANAL_KEYSTORE_ID "tw.poren.canal"
 #define CANAL_KEYSTORE_TOKEN "token"
 
 Application::Application(int &argc, char** argv)
-    : QApplication(argc, argv)
+    : QApplication(argc, argv), cache(this), notification(this)
 {
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     initializeComponents();
@@ -38,9 +36,11 @@ void Application::initializeComponents()
     connect(comet, &Comet::newPlurk, [=](int postId) {
         // Get item from cache
         Plurq::Post post = cache.post(postId);
-        Plurq::Profile owner = cache.user(post.ownerId());
+        Plurq::Profile owner = cache.user(post.userId());
         // Only show notifications for others' new posts
-        if (post.ownerId() != cache.currentUserId())
+#ifndef DEBUG
+        if (post.userId() != cache.currentUserId())
+#endif
             notification.post(Notification::NewPost, postId);
     });
     connect(comet, &Comet::newResponse, [=](int postId, int responseId) {
@@ -48,11 +48,14 @@ void Application::initializeComponents()
         Plurq::Post post = cache.post(postId);
         // Only show notifications for noteworthy responses
         // No need to get responder as comet returns its data with the response
-        if (post.responded() || post.mentioned() || post.ownerId() == cache.currentUserId())
-            notification.post(Notification::NewResponse, postId, post.ownerId(), responseId);
+#ifndef DEBUG
+        if (post.responded() || post.mentioned() || post.userId() == cache.currentUserId())
+#endif
+            notification.post(Notification::NewResponse, postId, post.userId(), responseId);
     });
 
     // Wire up notification
+    notification.setCache(&cache);
     connect(&notification, &Notification::queryPost, comet, &Comet::updatePost);
     connect(&notification, &Notification::queryUser, comet, &Comet::updateUser);
     connect(&cache, &Cache::postChanged, &notification, &Notification::onPostChanged);

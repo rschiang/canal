@@ -20,6 +20,7 @@ signals:
 
 protected:
     QMenu *m_menu = nullptr;
+    QAction *nicknameMenuItem;
     QAction *accountMenuItem;
     QAction *notificationMenuItem;
 

@@ -1,10 +1,7 @@
 #include "cache.h"
 
 Cache::Cache(QObject *parent)
-    : QObject(parent),
-      users(QHash<int, Plurq::Profile>()),
-      posts(QHash<int, Plurq::Post>()),
-      responses(QHash<int, Plurq::Post>())
+    : QObject(parent), users(), posts(), responses()
 {
     users.reserve(50);
     posts.reserve(200);
@@ -64,6 +61,12 @@ int Cache::setUser(Plurq::Profile profile)
 int Cache::setPost(Plurq::Post post)
 {
     Q_ASSERT(post.valid());
+
+    // Use owner_id to fill in user_id before storing
+    // Why give the same field different names Plurk team? Why?
+    QJsonObject& entity = post.entity();
+    if (entity.contains(QLatin1String("owner_id")))
+        entity[QLatin1String("user_id")] = entity[QLatin1String("owner_id")].toInt();
 
     int postId = post.id();
     // We always receive full plurk posts in comet,

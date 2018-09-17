@@ -3,7 +3,8 @@
 #define JS_CALLBACK_START "CometChannel.scriptCallback("
 #define JS_CALLBACK_END ");"
 
-Comet::Comet(Plurq::Plurk *plurk, QObject *parent) : QObject(parent)
+Comet::Comet(Plurq::Plurk *plurk, QObject *parent)
+    : QObject(parent)
 {
     this->plurk = plurk;
 
@@ -139,6 +140,7 @@ void Comet::initiate()
         if (entity.valid()) {
             this->name = entity.stringValue(QLatin1String("channel_name"));
             this->url = entity.stringValue(QLatin1String("comet_server"));
+            url.replace(QStringLiteral("&offset=0"), QString::null);
             qDebug() << "Comet channel" << this->name;
         } else {
             qDebug() << "Unable to fetch comet channel URL";
@@ -207,6 +209,9 @@ void Comet::send()
                     }
                 }
             }
+        } else {
+            // Weird empty response. Try resetting offset
+            this->offset = EMPTY_OFFSET;
         }
 
         // Clear out the active reply

@@ -17,6 +17,10 @@ TrayIcon::TrayIcon()
     setContextMenu(m_menu);
 
     // Initialize menu items
+    this->nicknameMenuItem = contextMenu->addAction(tr("Not logged in"));
+    nicknameMenuItem->setDisabled(true);
+    nicknameMenuItem->setVisible(false); // Hide nickname item before login
+
     this->accountMenuItem = contextMenu->addAction(tr("Not logged in"));
     accountMenuItem->setDisabled(true);
 
@@ -40,7 +44,10 @@ TrayIcon::~TrayIcon()
 
 void TrayIcon::updateProfile(Plurq::Profile *profile)
 {
-    QString text = tr("%1 · @%2").arg(profile->displayName()).arg(profile->nickName());
+    nicknameMenuItem->setText(profile->displayName());
+    nicknameMenuItem->setVisible(true);
+
+    QString text = tr("@%1 · Karma %2").arg(profile->nickName()).arg(profile->karma(), 0, 'f', 2);
     accountMenuItem->setText(text);
 }
 

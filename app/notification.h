@@ -13,6 +13,7 @@ public:
     explicit Notification(QObject *parent = nullptr);
 
     // Static methods
+    static QString sanitize(const QString &source);
     static void display(const QString &title, const QString &subtitle, const QString &content);
 
     // Types and instance methods
