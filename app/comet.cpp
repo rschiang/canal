@@ -56,7 +56,7 @@ void Comet::updateProfile()
             cache->setUser(profile);
             emit profileUpdated(&profile);
 
-            // Store acquired users and plurks in cache
+            // Store acquired users in cache
             for (auto u : entity.objectValue(QLatin1String("plurk_users")))
                 cache->setUser(u.toObject());
 
@@ -85,6 +85,47 @@ void Comet::updateAlerts()
                     continue;   // Ignore alerts earlier than 1 hour
                 qDebug() << "Alert type:" << i.stringValue(QLatin1String("type"));
             }
+        }
+        reply->deleteLater();
+    });
+}
+
+void Comet::updateUser(int userId)
+{
+    QVariantMap parameters;
+    parameters[QLatin1String("user_id")] = userId;
+    parameters[QLatin1String("minimal_data")] = true;
+    parameters[QLatin1String("include_plurks")] = false;
+
+    QNetworkReply *reply = plurk->get("Profile/getPublicProfile", parameters);
+    connect(reply, &QNetworkReply::finished, [=]() {
+        Plurq::Entity entity(reply);
+        if (entity.valid()) {
+            // Read user profile
+            Plurq::Profile profile = entity.objectValue(QLatin1String("user_info"));
+            cache->setUser(profile);
+        }
+        reply->deleteLater();
+    });
+}
+
+void Comet::updatePost(int postId)
+{
+    QVariantMap parameters;
+    parameters[QLatin1String("plurk_id")] = postId;
+    parameters[QLatin1String("minimal_data")] = true;
+
+    QNetworkReply *reply = plurk->get("Timeline/getPlurk", parameters);
+    connect(reply, &QNetworkReply::finished, [=]() {
+        Plurq::Entity entity(reply);
+        if (entity.valid()) {
+            // Read post and its metadata
+            cache->setPost(entity.objectValue(QLatin1String("plurk")));
+            cache->setUser(entity.objectValue(QLatin1String("user")));
+
+            // Store acquired users and plurks in cache
+            for (auto u : entity.objectValue(QLatin1String("plurk_users")))
+                cache->setUser(u.toObject());
         }
         reply->deleteLater();
     });

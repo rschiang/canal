@@ -39,32 +39,24 @@ void Application::initializeComponents()
         // Get item from cache
         Plurq::Post post = cache.post(postId);
         Plurq::Profile owner = cache.user(post.ownerId());
-
-        // Skip own posts
-        if (post.ownerId() == cache.current().id())
-            return;
-
-        Notification::display(
-                    tr("Plurk from your timeline"),
-                    tr("%1 %2").arg(owner.displayName()).arg(post.translatedQualifier()),
-                    post.rawContent());
+        // Only show notifications for others' new posts
+        if (post.ownerId() != cache.currentUserId())
+            notification.post(Notification::NewPost, postId);
     });
     connect(comet, &Comet::newResponse, [=](int postId, int responseId) {
         // Get item from cache
         Plurq::Post post = cache.post(postId);
-        Plurq::Post response = cache.response(responseId);
-        Plurq::Profile owner = cache.user(post.ownerId());
-        Plurq::Profile responder = cache.user(response.intValue(QLatin1String("user_id")));
-
-         // Skip anything that isn't noteworthy
-        if (!(post.responded() || post.mentioned() || post.ownerId() == cache.current().id()))
-            return;
-
-        Notification::display(
-                    tr("Response on %1's plurk").arg(owner.displayName()),
-                    tr("%1 %2").arg(responder.displayName()).arg(response.qualifier()), // TODO: Translate
-                    response.rawContent());
+        // Only show notifications for noteworthy responses
+        // No need to get responder as comet returns its data with the response
+        if (post.responded() || post.mentioned() || post.ownerId() == cache.currentUserId())
+            notification.post(Notification::NewResponse, postId, post.ownerId(), responseId);
     });
+
+    // Wire up notification
+    connect(&notification, &Notification::queryPost, comet, &Comet::updatePost);
+    connect(&notification, &Notification::queryUser, comet, &Comet::updateUser);
+    connect(&cache, &Cache::postChanged, &notification, &Notification::onPostChanged);
+    connect(&cache, &Cache::userChanged, &notification, &Notification::onUserChanged);
 
     // Authorize application
     loadCredentials();

@@ -21,9 +21,19 @@ Plurq::Post& Cache::response(int responseId)
     return responses[responseId];
 }
 
-Plurq::Profile& Cache::current()
+Plurq::Profile& Cache::currentUser()
 {
-    return users[currentUserId];
+    return users[m_currentUserId];
+}
+
+bool Cache::userExists(int userId) const
+{
+    return users.contains(userId);
+}
+
+bool Cache::postExists(int postId) const
+{
+    return posts.contains(postId);
 }
 
 int Cache::setUser(Plurq::Profile profile)
@@ -32,21 +42,32 @@ int Cache::setUser(Plurq::Profile profile)
 
     int userId = profile.id();
     if (users.contains(userId)) {
-        // TODO: Update necessary fields only
+        // Do not replace entity directly
+        // as user might be partially updated
+        QJsonObject& entity = profile.entity();
+        QJsonObject& cached = users[userId].entity();
+        for (QString key : entity.keys())
+            cached[key] = entity[key];
     } else {
         users[userId] = profile;
     }
 
+    // Publish cache update
+    emit userChanged(userId);
     return userId;
 }
 
 int Cache::setPost(Plurq::Post post)
 {
     Q_ASSERT(post.valid());
+
     int postId = post.id();
     // We always receive full plurk posts in comet,
     // so go ahead and replace it.
     posts[postId] = post;
+
+    // Publish cache update
+    emit postChanged(postId);
     return postId;
 }
 
@@ -61,5 +82,5 @@ int Cache::setResponse(Plurq::Post response)
 
 void Cache::setCurrentUserId(int userId)
 {
-    currentUserId = userId;
+    m_currentUserId = userId;
 }

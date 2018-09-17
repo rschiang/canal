@@ -16,12 +16,15 @@ public:
     Plurq::Profile& user(int userId);
     Plurq::Post& post(int postId);
     Plurq::Post& response(int responseId);
-    Plurq::Profile& current();
+    Plurq::Profile& currentUser();
+    inline int currentUserId() const { return m_currentUserId; }
+
+    bool userExists(int userId) const;
+    bool postExists(int postId) const;
 
 signals:
-    // TODO: Are we implementing this?
-    // userChanged
-    // postChanged
+    void userChanged(int userId);
+    void postChanged(int postId);
 
 public slots:
     int setUser(Plurq::Profile profile);
@@ -33,7 +36,7 @@ protected:
     QHash<int, Plurq::Profile> users;
     QHash<int, Plurq::Post> posts;
     QHash<int, Plurq::Post> responses;
-    int currentUserId = CACHE_INVALID_USER;
+    int m_currentUserId = CACHE_INVALID_USER;
 };
 
 #endif // CACHE_H

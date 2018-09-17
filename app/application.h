@@ -6,6 +6,7 @@
 #include <Plurk>
 #include "cache.h"
 #include "comet.h"
+#include "notification.h"
 #include "trayicon.h"
 
 class Application : public QApplication
@@ -23,6 +24,7 @@ protected:
 
     Plurq::Plurk *plurk;
     Cache cache;
+    Notification notification;
     Comet *comet;
     TrayIcon *trayIcon;
     QMenuBar *menuBar;  // macOS/Unix only

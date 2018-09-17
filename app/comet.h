@@ -28,6 +28,8 @@ public slots:
     void stop();
     void updateProfile();
     void updateAlerts();
+    void updateUser(int userId);
+    void updatePost(int postId);
 
 protected slots:
     void initiate();
