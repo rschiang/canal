@@ -25,15 +25,27 @@ QtGuiApplication {
         files: ["*.cpp", "*.h"]
     }
 
+    Depends {
+        condition: qbs.targetOS.contains("macos")
+        name: "bundle"
+    }
+
+    Depends {
+        condition: qbs.targetOS.contains("macos")
+        name: "ib"
+    }
+
     Properties {
         condition: qbs.targetOS.contains("macos")
         cpp.dynamicLibraries: "objc"
         cpp.frameworks: "Foundation"
+        bundle.identifierPrefix: "tw.poren"
+        ib.appIconName: "AppIcon"
     }
 
     Group {
         name: "macOS"
         condition: qbs.targetOS.contains("macos")
-        files: ["*.mm"]
+        files: ["*.mm", "res/mac/resources.xcassets"]
     }
 }
